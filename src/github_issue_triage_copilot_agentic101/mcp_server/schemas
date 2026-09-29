@@ -1,0 +1,27 @@
+from pydantic import BaseModel
+
+class IssueSummary(BaseModel):
+    number: int
+    title: str
+    state: str           
+    labels: list[str]
+    comments: int        # count only, not the thread
+    reactions: int       # total reactions, a rough engagement signal
+    created_at: str
+    updated_at: str
+    url: str
+    body_preview: str
+
+def summarize(raw: dict, body_chars: int) -> IssueSummary:
+    return IssueSummary(
+        number=raw["number"],
+        title=raw["title"],
+        state=raw["state"],
+        labels=[l["name"] for l in raw["labels"]],
+        comments=raw["comments"],
+        reactions=raw.get("reactions", {}).get("total_count", 0),
+        created_at=raw["created_at"],
+        updated_at=raw["updated_at"],
+        url=raw["html_url"],
+        body_preview=(raw.get("body") or "")[:body_chars],  # body can be null
+    )
